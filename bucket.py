@@ -1,9 +1,6 @@
 import os
+import json
 from google.cloud import storage
-
-bucket_name = "gps-migration-apollo-qa"
-prefix="results/Vehicles/"
-delimiter="/"
 
 class FileSource:
     def __init__(self, bucket_name, prefix, delimiter):
@@ -20,8 +17,20 @@ class FileSource:
 
         blobs = list(self.bucket.list_blobs(n, prefix=self.prefix, delimiter=self.delimiter))
         return blobs
+
+    def rename(self, file, new_name):
+        new_blob = self.bucket.rename_blob(file, new_name)
+        return new_blob
         
 
-source = FileSource(bucket_name, prefix, delimiter)
-files = source.get_files(3)
-print(files)
+
+# bucket_name = "gps-migration-apollo-qa"
+# prefix="done/"
+# delimiter="/"
+# source = FileSource(bucket_name, prefix, delimiter)
+# files = source.get_files(3)
+# print(json.loads(files[0].download_as_string()))
+# source.rename(files[0], "done/XXXX-2.json")
+
+
+# files[0].delete()
