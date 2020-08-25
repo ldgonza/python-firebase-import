@@ -15,8 +15,7 @@ class FileSource:
             self.storage_client = storage.Client()
             self.bucket = self.storage_client.get_bucket(self.bucket_name)
 
-        blobs = list(self.bucket.list_blobs(n, prefix=self.prefix, delimiter=self.delimiter))
-        return blobs
+        return self.bucket.list_blobs(n, prefix=self.prefix, delimiter=self.delimiter)
 
     def rename(self, file, new_name):
         new_blob = self.bucket.rename_blob(file, new_name)

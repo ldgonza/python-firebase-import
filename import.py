@@ -3,10 +3,6 @@ import firebase_admin
 import google.cloud
 from firebase_admin import credentials, firestore
 
-cred = credentials.Certificate("./sa-key.json")
-app = firebase_admin.initialize_app(cred)
-store = firestore.client()
-file_path = "./data.json"
 
 def batch_data(iterable, n=1):
     l = len(iterable)
@@ -27,15 +23,23 @@ def import_batch(collection_name, batched_data, store):
 
     return batch.commit()
 
-def import_to_firebase(contents, store):
+def do_import_to_firebase(contents, store):
+    result = []
     for collection_name in contents:
         data = contents[collection_name]
         for batched_data in batch_data(data, 499):
-            result = import_batch(collection_name, batched_data, store)
+            r = import_batch(collection_name, batched_data, store)
+            result.append(r)
+    return result
 
-    print('Done')
+class Importer:
+    def __init__(self, credentials_path):
+        self.credentials_path = credentials_path
 
-with open(file_path) as json_file:
-    contents = json.load(json_file)
-    import_to_firebase(contents, store)
+    def start(self):
+        self.cred = credentials.Certificate(self.credentials_path)
+        self.app = firebase_admin.initialize_app(self.cred)
+        self.store = firestore.client()
 
+    def import_to_firebase(self, contents):
+        return do_import_to_firebase(contents, self.store)
