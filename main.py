@@ -1,3 +1,4 @@
+import time
 import json
 from firebase_import import Importer
 from process import process
@@ -23,6 +24,9 @@ def fill_input_queue(q):
 
 # #################################################
 
+def get_time():
+    return str(int(time.time() * 10000000))
+
 def do_process(input_queue: Queue, output_queue: Queue):
     file_source = FileSource(bucket_name, prefix, delimiter)
     importer = Importer(credentials)
@@ -31,21 +35,21 @@ def do_process(input_queue: Queue, output_queue: Queue):
         while True:
             file_name = input_queue.get(True, 1)
             file = file_source.get(file_name)
-            output_queue.put("Processing " + file_name)
+            output_queue.put(get_time() + " - Processing " + file_name)
 
             try:
-                contents = json.loads(file.download_as_string().encode("utf-8"))
+                contents = json.loads(file.download_as_string().decode("utf-8"))
                 importer.import_to_firebase(contents)
                 file.delete()
-                output_queue.put("Done " + file_name)
-            except:
+                output_queue.put(get_time() + " - Done " + file_name)
+            except Exception as e:
                 file_source.rename(file, "errors/" + file_name)
-                output_queue.put("Error " + file_name)
+                output_queue.put(get_time() + " - Error " + file_name + ": " + str(e))
             
     except queues.Empty:
         return
     except Exception as e:
-        output_queue.put("Error with " + file_name + ": " + str(e))
+        output_queue.put(get_time() + " - Error with " + file_name + ": " + str(e))
         raise e
 
 # #################################################
