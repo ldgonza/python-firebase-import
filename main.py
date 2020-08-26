@@ -10,12 +10,14 @@ credentials = "./sa-key.json"
 bucket_name = "gps-migration-apollo-qa"
 prefix="results/Vehicles/"
 delimiter="/"
-proc_count = 1
+proc_count = 3
+num_files = 1
 
 # #################################################
+
 def fill_input_queue(q):
     file_source = FileSource(bucket_name, prefix, delimiter)
-    files = file_source.get_files()
+    files = file_source.get_files(num_files)
     for file in files:
         q.put(file.name)
 
@@ -35,10 +37,11 @@ def do_process(input_queue: Queue, output_queue: Queue):
                 contents = json.loads(file.download_as_string())
                 importer.import_to_firebase(contents)
                 file.delete()
+                output_queue.put("Done " + file_name)
             except:
-                file_source.rename(file, "/errors/" + file.name)
-
-            output_queue.put("Done " + file_name)
+                file_source.rename(file, "errors/" + file_name)
+                output_queue.put("Error " + file_name)
+            
     except queues.Empty:
         return
     except Exception as e:
