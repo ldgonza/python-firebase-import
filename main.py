@@ -34,7 +34,7 @@ def do_process(input_queue: Queue, output_queue: Queue):
             output_queue.put("Processing " + file_name)
 
             try:
-                contents = json.loads(file.download_as_string())
+                contents = json.loads(file.download_as_string().encode("utf-8"))
                 importer.import_to_firebase(contents)
                 file.delete()
                 output_queue.put("Done " + file_name)
