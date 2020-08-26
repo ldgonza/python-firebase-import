@@ -1,8 +1,6 @@
-import json
 import firebase_admin
 import google.cloud
 from firebase_admin import credentials, firestore
-
 
 def batch_data(iterable, n=1):
     l = len(iterable)
@@ -35,11 +33,12 @@ def do_import_to_firebase(contents, store):
 class Importer:
     def __init__(self, credentials_path):
         self.credentials_path = credentials_path
-
-    def start(self):
-        self.cred = credentials.Certificate(self.credentials_path)
-        self.app = firebase_admin.initialize_app(self.cred)
-        self.store = firestore.client()
+        self.store = None
 
     def import_to_firebase(self, contents):
+        if(self.store is None):
+            self.cred = credentials.Certificate(self.credentials_path)
+            self.app = firebase_admin.initialize_app(self.cred)
+            self.store = firestore.client()
+
         return do_import_to_firebase(contents, self.store)
